@@ -1,0 +1,4 @@
+# Fallback pixel size, used ONLY when the DICOM has no PixelSpacing / ImagerPixelSpacing tag.
+# All images of the dataset come from one scanner model.
+row_mm: 1.05     # Y, distance between rows
+column_mm: 0.6   # X, distance between columns

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+# Model weights are versioned separately; rebuild with `python -m dxa_qc.training.region`.
+weights/
+weights.*/
+# REST API job data (uploads, reports, previews)
+var/

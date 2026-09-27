@@ -1,0 +1,25 @@
+# Clinical thresholds from the technical specification. Never hardcode these in code.
+spine:
+  max_axis_tilt_deg: 5.0
+hip:
+  roi_margin_vertical_cm: 3.0   # above and below the ROI
+  roi_margin_lateral_cm: 2.0    # lateral, depends on the side
+
+region:
+  # Below this softmax confidence the image is reported as Failure ("region not recognized")
+  # instead of being forced into spine/hip.
+  min_confidence: 0.6
+
+report:
+  # No space after ";": the organizer did not confirm that "; " is accepted.
+  violation_separator: ";"
+
+ingest:
+  max_file_bytes: 67108864            # 64 MiB per DICOM; real files are ~100 KiB
+  max_archive_members: 20000
+  max_archive_uncompressed_bytes: 8589934592  # 8 GiB
+  max_compression_ratio: 200          # per-member zip-bomb guard
+  max_image_side: 4096                # px; real DXA frames are ~300 px
+  min_physical_mm: 10                 # plausible field size per side (bounds isotropic resampling)
+  max_physical_mm: 2500
+  min_free_disk_bytes: 2147483648     # refuse extraction that would leave < 2 GiB free
