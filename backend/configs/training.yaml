@@ -1,0 +1,35 @@
+# Настройки обучения моделей качества (python -m dxa_qc.training.quality --config ...).
+# Значения по умолчанию воспроизводят поставляемую модель. Для большого датасета см.
+# docs/TRAINING_GUIDE.md: сетки регуляризации, другие бэкбоны, больше повторов CV.
+
+seed: 20260924
+
+cv:
+  n_splits: 5          # групповые фолды (группа = study_id)
+  repetitions: 20      # повторы CV с разными разбиениями; на больших данных хватит 3-5
+  bootstrap: 1000      # ресэмплы для 95% ДИ
+
+heads:
+  # Сила L2 (C логистической регрессии). Одно число - фиксированное значение; список -
+  # автоподбор по AUC на вложенной групповой CV внутри каждого обучающего фолда (честно,
+  # без утечки). На ~100 исследованиях подбор шумный, поэтому по умолчанию фиксировано.
+  geometry_c: [0.1]
+  embedding_c: [0.01]
+  inner_splits: 3      # фолды вложенной CV для автоподбора
+
+embedding:
+  batch_size: 16
+  device: auto         # auto | cpu | cuda | cuda:0 ...
+  cache_dir: var/embedding_cache   # эмбеддинги кэшируются по хешу пикселей: повторный запуск быстрый
+
+# Бэкбоны любых моделей timm (веса выгружаются python -m dxa_qc.training.backbones --config ...).
+# crop - доли канонического изображения [top, bottom, left, right]; key должен быть уникальным.
+regions:
+  spine:
+    backbones:
+      - {key: effb3_full, timm: efficientnet_b3.ra2_in1k, input_size: 288}
+      - {key: dinov2s_full, timm: vit_small_patch14_dinov2.lvd142m, input_size: 448}
+  hip:
+    backbones:
+      - {key: convnexts_full, timm: convnext_small.fb_in22k_ft_in1k, input_size: 224}
+      - {key: dinov2s_trochanter, timm: vit_small_patch14_dinov2.lvd142m, input_size: 448, crop: [0.35, 0.8, 0.15, 0.75]}

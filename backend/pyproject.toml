@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dxa-qc"
+version = "0.1.0"
+description = "AI quality control service for DXA (bone densitometry) DICOM studies"
+requires-python = ">=3.11,<3.13"
+# Ranges here document compatibility; exact pins live in the lock file.
+dependencies = [
+    "numpy>=2.0,<3",
+    "pydicom>=3.0,<4",
+    "pydantic>=2.7,<3",
+    "pyyaml>=6.0,<7",
+    "pandas>=2.2,<4",
+    "openpyxl>=3.1,<4",
+    "opencv-python-headless>=4.10",
+    "scikit-image>=0.24",
+    "scipy>=1.13",
+]
+
+[project.optional-dependencies]
+# Quality models: frozen backbones (inference). CUDA wheels: --extra-index-url https://download.pytorch.org/whl/cu128
+ml = ["torch>=2.4", "timm>=1.0", "safetensors>=0.4"]
+# REST API
+api = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "python-multipart>=0.0.9"]
+# Training / evaluation only; never imported on the inference path.
+train = ["scikit-learn>=1.5"]
+dev = ["pytest>=8", "ruff>=0.6", "pillow>=10"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+dxa_qc = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "dataset: needs the real training dataset on disk (skipped when absent)",
+]
+filterwarnings = [
+    # Real files carry over-long LO values / non-conformant UIDs; pydicom warns but reads them fine.
+    "ignore::UserWarning:pydicom.*",
+    "ignore:Using `httpx` with `starlette.testclient`",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # Cyrillic in strings/comments is intentional
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]

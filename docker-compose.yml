@@ -1,0 +1,77 @@
+# Полный запуск сервиса одной командой: http://localhost:7077
+#   docker compose up --build        (или npm start из корня)
+# GPU (NVIDIA Container Toolkit):
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+#
+# Перед первым запуском нужны веса в backend/weights (см. README.md).
+
+name: dxa-qc
+
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cpu}
+    image: dxa-qc-backend:latest
+    restart: unless-stopped
+    environment:
+      DXA_QC_DEVICE: ${DXA_QC_DEVICE:-}
+      # Swagger-документация API скрыта; для разработки: DXA_QC_API_DOCS=1.
+      DXA_QC_API_DOCS: ${DXA_QC_API_DOCS:-0}
+    volumes:
+      - ./backend/weights:/app/weights:ro
+      - jobs:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,noexec,nosuid,nodev
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Контейнер не может забрать все ресурсы машины, даже при ошибке внутри.
+    pids_limit: 512
+    mem_limit: ${DXA_QC_BACKEND_MEMORY:-8g}
+    cpus: ${DXA_QC_BACKEND_CPUS:-4}
+    # Только внутренняя сеть: backend не публикуется наружу и сам не может выйти в интернет -
+    # снимки пациентов физически не покидают хост.
+    networks:
+      - internal
+    expose:
+      - "8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    image: dxa-qc-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "${DXA_QC_PORT:-7077}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    # Необязательный вход по паролю: scripts/set_password.sh <логин> кладёт сюда файлы.
+    volumes:
+      - ./deploy/auth:/etc/nginx/auth.d:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+      - /var/cache/nginx:size=64m,noexec,nosuid,nodev
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 256m
+    cpus: 1
+    networks:
+      - internal
+      - public
+
+networks:
+  internal:
+    internal: true
+  public:
+
+volumes:
+  jobs:

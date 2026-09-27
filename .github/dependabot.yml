@@ -1,0 +1,22 @@
+# Еженедельные PR с обновлениями зависимостей: закреплённые версии не устаревают молча.
+# cooldown: новые версии предлагаются не раньше чем через 7 дней после публикации -
+# за это время вредоносные релизы обычно успевают отозвать.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
+  - package-ecosystem: docker
+    directory: /backend
+    schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    cooldown: { default-days: 7 }
