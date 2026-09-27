@@ -1,0 +1,17 @@
+# Надстройка для GPU: CUDA-сборка torch и доступ к видеокарте (нужен NVIDIA Container Toolkit).
+services:
+  backend:
+    # Отдельный тег: CPU- и GPU-образы сосуществуют.
+    image: dxa-qc-backend:gpu
+    build:
+      args:
+        TORCH_INDEX_URL: https://download.pytorch.org/whl/cu128
+    environment:
+      DXA_QC_DEVICE: cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

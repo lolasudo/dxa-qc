@@ -1,0 +1,17 @@
+{
+  "name": "dxa-qc",
+  "private": true,
+  "description": "ИИ-сервис контроля качества денситометрических исследований (DXA): запуск одной командой",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "setup": "node scripts/setup.mjs",
+    "start": "docker compose up --build --detach --wait && node scripts/ready.mjs",
+    "start:gpu": "docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build --detach --wait && node scripts/ready.mjs gpu",
+    "stop": "docker compose down",
+    "logs": "docker compose logs -f --tail 100",
+    "test": "node scripts/test.mjs"
+  }
+}

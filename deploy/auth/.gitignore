@@ -1,0 +1,3 @@
+# Файлы входа по паролю (создаёт scripts/set_password.sh). Не коммитить.
+*
+!.gitignore
